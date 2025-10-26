@@ -1,213 +1,124 @@
 import { useState } from 'react';
-import { Sidebar } from '@/components/Sidebar';
-import { ChatMessage } from '@/components/ChatMessage';
-import { ChatInput } from '@/components/ChatInput';
-import { ProfileDialog } from '@/components/ProfileDialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Icon from '@/components/ui/icon';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: string;
 }
-
-interface Chat {
-  id: string;
-  title: string;
-  timestamp: string;
-  messages: Message[];
-}
-
-const mockChats: Chat[] = [
-  {
-    id: '1',
-    title: 'Скрипт для обработки данных',
-    timestamp: 'Сегодня, 14:30',
-    messages: [
-      {
-        id: '1',
-        role: 'user',
-        content: 'Помоги написать скрипт на Python для обработки CSV файла',
-        timestamp: '14:30'
-      },
-      {
-        id: '2',
-        role: 'assistant',
-        content: 'Конечно! Вот пример скрипта на Python для обработки CSV файла:\n\n```python\nimport csv\n\nwith open(\'data.csv\', \'r\', encoding=\'utf-8\') as file:\n    reader = csv.DictReader(file)\n    for row in reader:\n        print(row)\n```\n\nЧто конкретно нужно сделать с данными?',
-        timestamp: '14:31'
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Функция на Lua',
-    timestamp: 'Вчера, 18:20',
-    messages: []
-  }
-];
 
 const Index = () => {
-  const [chats, setChats] = useState<Chat[]>(mockChats);
-  const [activeChat, setActiveChat] = useState<string | null>('1');
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: 'Привет! Я AI-ассистент для программирования на Lua и Python. Чем могу помочь?',
+    },
+  ]);
+  const [input, setInput] = useState('');
 
-  const currentChat = chats.find(c => c.id === activeChat);
+  const handleSend = () => {
+    if (!input.trim()) return;
 
-  const handleNewChat = () => {
-    const newChat: Chat = {
-      id: String(Date.now()),
-      title: 'Новый чат',
-      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-      messages: []
-    };
-    setChats([newChat, ...chats]);
-    setActiveChat(newChat.id);
-  };
-
-  const handleSendMessage = (content: string) => {
-    if (!activeChat) return;
-
-    const newMessage: Message = {
-      id: String(Date.now()),
+    const userMessage: Message = {
+      id: Date.now().toString(),
       role: 'user',
-      content,
-      timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      content: input,
     };
 
-    setChats(chats.map(chat => {
-      if (chat.id === activeChat) {
-        const updatedMessages = [...chat.messages, newMessage];
-        
-        setTimeout(() => {
-          const aiResponse: Message = {
-            id: String(Date.now() + 1),
-            role: 'assistant',
-            content: 'Я AI-ассистент для программирования на Lua и Python. Опишите подробнее вашу задачу, и я помогу вам написать код!',
-            timestamp: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-          };
-          
-          setChats(prevChats => prevChats.map(c => 
-            c.id === activeChat 
-              ? { ...c, messages: [...c.messages, aiResponse] }
-              : c
-          ));
-        }, 1000);
+    setMessages([...messages, userMessage]);
+    setInput('');
 
-        return {
-          ...chat,
-          messages: updatedMessages,
-          title: chat.messages.length === 0 ? content.slice(0, 30) + (content.length > 30 ? '...' : '') : chat.title
-        };
-      }
-      return chat;
-    }));
+    setTimeout(() => {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Я готов помочь с вашим кодом! Опишите задачу подробнее.',
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    }, 1000);
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar
-        chats={chats}
-        activeChat={activeChat}
-        onSelectChat={setActiveChat}
-        onNewChat={handleNewChat}
-        onOpenProfile={() => setProfileOpen(true)}
-      />
-      
+    <div className="flex h-screen">
+      <div className="w-64 bg-card border-r border-border flex flex-col">
+        <div className="p-4 border-b border-border">
+          <h2 className="font-semibold text-lg flex items-center gap-2">
+            <Icon name="Code" size={20} />
+            Code Assistant
+          </h2>
+        </div>
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-2">
+            <Button variant="ghost" className="w-full justify-start">
+              <Icon name="MessageSquare" size={16} className="mr-2" />
+              Новый чат
+            </Button>
+            <Button variant="secondary" className="w-full justify-start">
+              <Icon name="History" size={16} className="mr-2" />
+              Текущий чат
+            </Button>
+          </div>
+        </ScrollArea>
+      </div>
+
       <div className="flex-1 flex flex-col">
-        {currentChat ? (
-          <>
-            <div className="border-b border-border bg-card px-6 py-4">
-              <div className="flex items-center gap-3 max-w-4xl mx-auto">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                  <Icon name="Code" size={20} className="text-white" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold">{currentChat.title}</h1>
-                  <p className="text-sm text-muted-foreground">AI-ассистент для Lua и Python</p>
-                </div>
-              </div>
-            </div>
-            
-            <ScrollArea className="flex-1 px-6">
-              <div className="max-w-4xl mx-auto py-6">
-                {currentChat.messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-                    <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-6">
-                      <Icon name="Sparkles" size={40} className="text-white" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2">Начните новый диалог</h2>
-                    <p className="text-muted-foreground max-w-md mb-8">
-                      Я помогу вам с написанием кода на Lua и Python. Задайте вопрос или опишите задачу!
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
-                      <Card className="p-4 hover:bg-accent transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <Icon name="Code2" size={20} className="text-primary mt-1" />
-                          <div>
-                            <h3 className="font-medium mb-1">Написать функцию</h3>
-                            <p className="text-sm text-muted-foreground">Помогу создать функцию на Python или Lua</p>
-                          </div>
-                        </div>
-                      </Card>
-                      <Card className="p-4 hover:bg-accent transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <Icon name="Bug" size={20} className="text-primary mt-1" />
-                          <div>
-                            <h3 className="font-medium mb-1">Исправить ошибку</h3>
-                            <p className="text-sm text-muted-foreground">Найду и исправлю баги в коде</p>
-                          </div>
-                        </div>
-                      </Card>
-                      <Card className="p-4 hover:bg-accent transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <Icon name="BookOpen" size={20} className="text-primary mt-1" />
-                          <div>
-                            <h3 className="font-medium mb-1">Объяснить код</h3>
-                            <p className="text-sm text-muted-foreground">Разберу как работает ваш скрипт</p>
-                          </div>
-                        </div>
-                      </Card>
-                      <Card className="p-4 hover:bg-accent transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <Icon name="Zap" size={20} className="text-primary mt-1" />
-                          <div>
-                            <h3 className="font-medium mb-1">Оптимизировать</h3>
-                            <p className="text-sm text-muted-foreground">Улучшу производительность кода</p>
-                          </div>
-                        </div>
-                      </Card>
-                    </div>
-                  </div>
-                ) : (
-                  currentChat.messages.map(message => (
-                    <ChatMessage
-                      key={message.id}
-                      role={message.role}
-                      content={message.content}
-                      timestamp={message.timestamp}
-                    />
-                  ))
+        <div className="border-b border-border px-6 py-4 bg-card">
+          <h1 className="text-xl font-semibold">AI-ассистент для Lua и Python</h1>
+        </div>
+
+        <ScrollArea className="flex-1 px-6">
+          <div className="max-w-3xl mx-auto py-6 space-y-6">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {message.role === 'assistant' && (
+                  <Avatar className="h-8 w-8 bg-primary">
+                    <AvatarFallback className="bg-primary text-primary-foreground">AI</AvatarFallback>
+                  </Avatar>
+                )}
+                <Card className={`p-4 max-w-[80%] ${message.role === 'user' ? 'bg-primary text-primary-foreground' : ''}`}>
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                </Card>
+                {message.role === 'user' && (
+                  <Avatar className="h-8 w-8 bg-secondary">
+                    <AvatarFallback>
+                      <Icon name="User" size={16} />
+                    </AvatarFallback>
+                  </Avatar>
                 )}
               </div>
-            </ScrollArea>
-            
-            <ChatInput onSendMessage={handleSendMessage} />
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <Icon name="MessageSquare" size={48} className="mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-xl font-semibold mb-2">Выберите чат или создайте новый</h2>
-              <p className="text-muted-foreground">Начните общение с AI-ассистентом</p>
-            </div>
+            ))}
           </div>
-        )}
+        </ScrollArea>
+
+        <div className="border-t border-border p-4 bg-card">
+          <div className="max-w-3xl mx-auto flex gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder="Напишите ваш вопрос..."
+              className="min-h-[60px] resize-none"
+            />
+            <Button onClick={handleSend} size="icon" className="h-[60px] w-[60px] bg-primary">
+              <Icon name="Send" size={20} />
+            </Button>
+          </div>
+        </div>
       </div>
-      
-      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </div>
   );
 };
