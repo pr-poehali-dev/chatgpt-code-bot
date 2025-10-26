@@ -36,7 +36,7 @@ const mockChats: Chat[] = [
       {
         id: '2',
         role: 'assistant',
-        content: 'Конечно! Вот пример скрипта на Python для обработки CSV файла:\n\nimport csv\n\nwith open(\'data.csv\', \'r\', encoding=\'utf-8\') as file:\n    reader = csv.DictReader(file)\n    for row in reader:\n        print(row)\n\nЧто конкретно нужно сделать с данными?',
+        content: 'Конечно! Вот пример скрипта на Python для обработки CSV файла:\n\n```python\nimport csv\n\nwith open(\'data.csv\', \'r\', encoding=\'utf-8\') as file:\n    reader = csv.DictReader(file)\n    for row in reader:\n        print(row)\n```\n\nЧто конкретно нужно сделать с данными?',
         timestamp: '14:31'
       }
     ]
