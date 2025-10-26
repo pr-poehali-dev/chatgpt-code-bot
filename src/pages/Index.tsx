@@ -107,7 +107,7 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background dark">
+    <div className="flex h-screen bg-background">
       <Sidebar
         chats={chats}
         activeChat={activeChat}
