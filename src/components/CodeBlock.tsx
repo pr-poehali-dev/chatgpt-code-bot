@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useState, useEffect } from 'react';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-lua';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +15,10 @@ interface CodeBlockProps {
 export const CodeBlock = ({ code, language }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    Prism.highlightAll();
+  }, [code, language]);
 
   const handleCopy = async () => {
     try {
@@ -33,38 +39,27 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
     }
   };
 
+  const languageClass = `language-${language}`;
+
   return (
-    <div className="relative group my-4 rounded-lg overflow-hidden border border-border">
-      <div className="flex items-center justify-between bg-muted px-4 py-2 border-b border-border">
-        <span className="text-xs font-mono text-muted-foreground uppercase">{language}</span>
+    <div className="relative group my-4 rounded-lg overflow-hidden border border-border bg-[#1d1f21]">
+      <div className="flex items-center justify-between bg-[#2d2d2d] px-4 py-2 border-b border-border">
+        <span className="text-xs font-mono text-gray-400 uppercase">{language}</span>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleCopy}
-          className="h-8 px-2 hover:bg-accent"
+          className="h-8 px-2 hover:bg-[#3d3d3d] text-gray-300"
         >
           <Icon name={copied ? 'Check' : 'Copy'} size={14} className="mr-1" />
           <span className="text-xs">{copied ? 'Скопировано' : 'Копировать'}</span>
         </Button>
       </div>
-      <SyntaxHighlighter
-        language={language}
-        style={oneDark}
-        customStyle={{
-          margin: 0,
-          padding: '1rem',
-          background: 'hsl(var(--card))',
-          fontSize: '0.875rem',
-          lineHeight: '1.5',
-        }}
-        codeTagProps={{
-          style: {
-            fontFamily: 'Roboto Mono, monospace',
-          }
-        }}
-      >
-        {code}
-      </SyntaxHighlighter>
+      <pre className="!m-0 !p-4 !bg-[#1d1f21] overflow-x-auto">
+        <code className={languageClass} style={{ fontFamily: 'Roboto Mono, monospace', fontSize: '0.875rem' }}>
+          {code}
+        </code>
+      </pre>
     </div>
   );
 };
